@@ -1,0 +1,11 @@
+--- a/dlls/wininet/http.c
++++ b/dlls/wininet/http.c
+@@ -3249,7 +3249,7 @@ static DWORD HTTPREQ_SetFilePointer(object_header_t *hdr, LONG lDistanceToMove, DWORD
+             break;
+     }
+ 
+-    if(err == ERROR_SUCCESS) {
++    if(err == ERROR_SUCCESS && res != req->content_pos) {
+         req->content_pos = res;
+         req->read_pos = req->read_size = 0;
+     }

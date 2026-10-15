@@ -1,0 +1,10 @@
+--- a/tools/makedep.c
++++ b/tools/makedep.c
+@@ -3849,7 +3849,6 @@
+     output_filename( winegcc );
+     output( "\n" );
+     output_winegcc_command( make, link_arch );
+-    if (arch) output_filename( "-Wl,--wine-builtin" );
+     if (!make->is_exe) output_filename( "-shared" );
+     if (spec_file)
+     {

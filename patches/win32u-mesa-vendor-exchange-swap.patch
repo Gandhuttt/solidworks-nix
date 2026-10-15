@@ -1,0 +1,52 @@
+--- a/dlls/win32u/opengl.c	2026-10-14 07:46:14.580850820 +0700
++++ b/dlls/win32u/opengl.c	2026-10-14 07:55:02.478403726 +0700
+@@ -1148,6 +1148,25 @@
+     return ARRAY_SIZE(pixel_format_flags) * count;
+ }
+ 
++static UINT read_drm_device_prop( const char *name, const char *prop );
++
++/* Pixel formats are described before init_device_info() fills in egl->vendor_id, so ask the EGL device directly
++ * (same DRM lookup as init_device_info). Cached; -1 when the vendor cannot be determined. */
++static UINT display_device_vendor_id( const struct opengl_funcs *funcs, const struct egl_platform *egl )
++{
++    static UINT vendor = -2;
++    const char *extensions, *str;
++
++    if (vendor != -2) return vendor;
++    vendor = -1;
++    if (!egl->device || !funcs->p_eglQueryDeviceStringEXT) return vendor;
++    extensions = funcs->p_eglQueryDeviceStringEXT( egl->device, EGL_EXTENSIONS );
++    if (extensions && has_extension( extensions, "EGL_EXT_device_drm" ) &&
++        (str = funcs->p_eglQueryDeviceStringEXT( egl->device, EGL_DRM_DEVICE_FILE_EXT )) && (str = strrchr( str, '/' )))
++        vendor = read_drm_device_prop( str, "vendor" );
++    return vendor;
++}
++
+ static BOOL describe_egl_config( EGLConfig config, struct wgl_pixel_format *fmt, UINT flags )
+ {
+     const struct opengl_funcs *funcs = &display_funcs;
+@@ -1193,7 +1212,11 @@
+     SET_ATTRIB( cDepthBits, EGL_DEPTH_SIZE );
+     SET_ATTRIB( cStencilBits, EGL_STENCIL_SIZE );
+ 
+-    fmt->swap_method = WGL_SWAP_UNDEFINED_ARB;
++    /* Measured on AMD radeonsi only: with WGL_SWAP_UNDEFINED_ARB a partial redraw followed by SwapBuffers loses the
++     * rest of the frame, and the swap chain behaves as a two-buffer exchange. Report that for AMD devices; every
++     * other device keeps the original value because the behaviour was not measured there (llvmpipe, for one,
++     * preserved partial redraws in the same probe). */
++    fmt->swap_method = display_device_vendor_id( funcs, egl ) == 0x1002 ? WGL_SWAP_EXCHANGE_ARB : WGL_SWAP_UNDEFINED_ARB;
+ 
+     if (funcs->p_eglGetConfigAttrib( egl->display, config, EGL_TRANSPARENT_TYPE, &value ))
+     {
+@@ -1730,7 +1753,9 @@
+     switch (vendor)
+     {
+     case 0x8086: return "Intel";
+-    case 0x1002: return "ATI Technologies Inc.";
++    /* Observed with SOLIDWORKS 2026 SP4.1 on radeonsi: the 3D viewport stays black when GL_VENDOR is
++     * "ATI Technologies Inc." and draws with "Mesa". The cause was not established. AMD only. */
++    case 0x1002: return "Mesa";
+     case 0x10de: return "NVIDIA Corporation";
+     default:     return default_name;
+     }

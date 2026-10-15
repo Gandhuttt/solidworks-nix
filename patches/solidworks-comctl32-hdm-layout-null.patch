@@ -1,0 +1,10 @@
+--- a/dlls/comctl32/header.c	2026-10-12 22:57:28.391667487 +0700
++++ b/dlls/comctl32/header.c	2026-10-12 22:57:28.577906057 +0700
+@@ -1495,6 +1495,7 @@
+ static LRESULT
+ HEADER_Layout (HEADER_INFO *infoPtr, LPHDLAYOUT lpLayout)
+ {
++    if (!lpLayout || !lpLayout->prc || !lpLayout->pwpos) return FALSE;
+     lpLayout->pwpos->hwndInsertAfter = 0;
+     lpLayout->pwpos->x = lpLayout->prc->left;
+     lpLayout->pwpos->y = lpLayout->prc->top;

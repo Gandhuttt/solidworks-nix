@@ -1,0 +1,14 @@
+--- a/dlls/msxml3/node.c	2026-10-12 22:11:18.115065518 +0700
++++ b/dlls/msxml3/node.c	2026-10-12 22:11:18.292915950 +0700
+@@ -2053,7 +2053,10 @@
+             node_dump_element_attributes(context, node);
+             if (list_empty(&node->children))
+             {
+-                node_dump_append(context, L"/>", 2);
++                node_dump_append(context, L">", 1);
++                node_dump_append(context, L"</", 2);
++                node_dump_qualified_name(context, node);
++                node_dump_append(context, L">", 1);
+             }
+             else
+             {
