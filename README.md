@@ -60,12 +60,16 @@ around mis-routed clicks when the macro editor is open), `SW_SOFTWARE_GL=1` (CPU
   ignore other prefixes; the start lock stops a second click during startup, is released when startup ends (tested with a 2-minute
   stand-in: script returns after ~22 s, lock acquirable while the app is open), and a later click then reports
   "already running".
-- Real session on the current build (`solidworks` command, `packages.wine`, gated swap override): the window comes up, the process maps the
-  `win32u.so` from this package, the viewport renders (119,953 model-like pixels, same as the hand-made setup), a part's
-  volume reads back correctly, and `BodyGroup.SLDASM` (the assembly that used to hang) saves a copy, closes, and the
-  copy reopens with the same 27 components and no load errors or warnings. The project folder was unchanged.
-  The `BodyGroup.SLDASM` copy test was run on the previous build (identical on this GPU); the launch, mapped
-  `win32u.so`, viewport render, volume read-back, empty log (0 schema errors, 0 crashes) were repeated on the current one.
+- Real session on the current build (`solidworks` command, `packages.wine`, gated swap override): the window comes up,
+  the process maps the `win32u.so` from this package, the viewport renders (119,953 model-like pixels, same as the
+  hand-made setup), a part's volume reads back correctly, and the launch log shows no schema errors or crashes.
+- On the build before the swap override was gated to AMD (identical on this GPU): `BodyGroup.SLDASM` (the assembly that
+  used to hang) saved a copy, closed, and the copy reopened with the same 27 components and no load errors or
+  warnings; the project folder was unchanged. That test was not repeated on the current build.
+- Exporting 11 parts to STEP through the API, on the current build: all 11 files have a valid STEP header and footer,
+  the source parts' timestamps were unchanged, and BottomPCB's STEP holds 226 closed and 570 open shells, matching the
+  226 solid and 570 surface bodies SOLIDWORKS showed for that part. No other part's body count was compared. The files
+  were not re-imported to check the geometry, and all are AP203 (no colours).
 - Confirmed by the user on the current build, on their own assembly: hovering no longer makes parts vanish, and a
   normal Save works.
 - **Not verified:** other GPUs, other Wine versions, and installing SOLIDWORKS from scratch with this package.
